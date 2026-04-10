@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +33,19 @@ Route::prefix('v1')->group(function(){
 
     Route::get('categories', [CategoryController::class, 'index']);
     Route::get('categories/{category}/products', [CategoryController::class, 'products']);
+
+
+    Route::get('wishlist', [WishlistController::class, 'index']);
+    Route::post('wishlist/add', [WishlistController::class, 'add']);
+    Route::delete('wishlist/remove/{productId}', [WishlistController::class, 'remove']);
+    Route::get('wishlist/check/{productId}', [WishlistController::class, 'check']);
+
+
+
+    Route::get('reviews', [ReviewController::class, 'index']);
+    Route::post('reviews', [ReviewController::class, 'store']);
+    Route::get('my-reviews', [ReviewController::class, 'myReviews']);
+    Route::delete('remove', [ReviewController::class, 'remove']);
 
 
 });
