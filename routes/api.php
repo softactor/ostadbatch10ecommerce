@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\WishlistController;
@@ -46,6 +47,17 @@ Route::prefix('v1')->group(function(){
     Route::post('reviews', [ReviewController::class, 'store']);
     Route::get('my-reviews', [ReviewController::class, 'myReviews']);
     Route::delete('remove', [ReviewController::class, 'remove']);
+
+
+    // payment gateway route
+
+    Route::post('checkout', [PaymentController::class, 'checkout']);
+    
+    
+    Route::post('sslcommerz/success', [PaymentController::class, 'paymentSuccess'])->name('sslc.success');
+    Route::post('sslcommerz/failure', [PaymentController::class, 'paymentFailure'])->name('sslc.failure');
+    Route::post('sslcommerz/cancel', [PaymentController::class, 'paymentCancel'])->name('sslc.cancel');
+    Route::post('sslcommerz/ipn', [PaymentController::class, 'paymentIpn'])->name('sslc.ipn');
 
 
 });
