@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OtpMail;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -20,8 +24,21 @@ class AuthController extends Controller
             'otp_expire_at' => now()->addMinutes(5)
         ]);
         
+
+        if($user->email){
+            try{
+
+                Mail::to($user->email)
+                ->send(new OtpMail($otp, $user->name));
+
+            }catch(Exception $error){
+                Log::error('Failed to send otp:' . $error->getMessage());
+            }
+        }
+
+
         // In real project, send SMS here
-        return response()->json(['message' => 'OTP sent successfully', 'otp' => $otp]);
+        return response()->json(['message' => 'OTP sent successfully']);
     }
     
     // Verify OTP & Login
