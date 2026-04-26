@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use PHPUnit\Metadata\Group;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -58,6 +59,13 @@ Route::prefix('v1')->group(function(){
     Route::post('sslcommerz/failure', [PaymentController::class, 'paymentFailure'])->name('sslc.failure');
     Route::post('sslcommerz/cancel', [PaymentController::class, 'paymentCancel'])->name('sslc.cancel');
     Route::post('sslcommerz/ipn', [PaymentController::class, 'paymentIpn'])->name('sslc.ipn');
+
+
+    Route::middleware('auth:sanctum')->group(function(){
+
+        Route::get('admin/products', [ProductController::class, 'index']);
+
+    });
 
 
 });
