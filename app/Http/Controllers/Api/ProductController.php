@@ -13,6 +13,9 @@ class ProductController extends Controller
     {
         $query = Product::with(['brand', 'category'])->where('is_active', true);
         
+        if ($request->search) {
+            $query->where('name','like', '%'.$request->search.'%');
+        }
         if ($request->brand_id) {
             $query->where('brand_id', $request->brand_id);
         }
