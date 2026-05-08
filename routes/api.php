@@ -64,6 +64,8 @@ Route::prefix('v1')->group(function(){
     Route::middleware('auth:sanctum')->group(function(){
 
         Route::get('admin/products', [ProductController::class, 'index']);
+        Route::put('admin/products/{product}', [ProductController::class, 'update']);
+        Route::delete('admin/products/{product}', [ProductController::class, 'destroy']);
 
     });
 
