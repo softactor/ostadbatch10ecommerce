@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CustomerAuthController;
+use App\Http\Controllers\Api\CustomerOrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReviewController;
@@ -26,6 +27,9 @@ Route::prefix('v1')->group(function(){
         Route::middleware('auth:sanctum')->group(function(){
             Route::get('me', [CustomerAuthController::class,'me']);     
             Route::post('checkout', [PaymentController::class,'checkout']); 
+
+            Route::get('orders', [CustomerOrderController::class, 'index']);
+            Route::get('orders/{order}', [CustomerOrderController::class, 'show']);
             Route::post('logout', [CustomerAuthController::class, 'logout']);
         });
     });
