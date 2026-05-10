@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\CustomerAuthController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReviewController;
@@ -17,6 +18,17 @@ Route::get('/user', function (Request $request) {
 
 
 Route::prefix('v1')->group(function(){
+    Route::prefix('customer')->group(function(){
+
+        Route::post('register', [CustomerAuthController::class, 'register']);
+        Route::post('login', [CustomerAuthController::class, 'login']);
+
+        Route::middleware('auth:sanctum')->group(function(){
+            Route::get('me', [CustomerAuthController::class,'me']);     
+            Route::post('checkout', [PaymentController::class,'checkout']); 
+            Route::post('logout', [CustomerAuthController::class, 'logout']);
+        });
+    });
 
     Route::post('send-otp', [AuthController::class, 'sendOtp']);
     Route::post('verify-otp', [AuthController::class, 'verifyOtp']);

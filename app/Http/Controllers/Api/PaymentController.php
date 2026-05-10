@@ -7,6 +7,7 @@ use App\Models\Cart;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -17,28 +18,35 @@ class PaymentController extends Controller
     // চেকআউট - অর্ডার তৈরি ও পেমেন্ট ইনির্শিয়েট
     public function checkout(Request $request)
     {
+        
         $request->validate([
             'shipping_address' => 'required|string',
             'customer_name' => 'required|string',
             'customer_email' => 'required|email',
-            'customer_phone' => 'required|string'
+            'customer_phone' => 'required|string',
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|integer|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1'
         ]);
         
-        $user = User::find($request->user_id);// update with auth user
-        
-        // কার্ট থেকে আইটেম নেওয়া
-        $cartItems = Cart::with('product')
-            ->where('user_id', $user->id)
-            ->get();
-        
-        if ($cartItems->isEmpty()) {
-            return response()->json(['message' => 'Cart is empty'], 400);
-        }
+        $user = $request->user(); // update with auth user  
+        $cartItems = $request->input('items'); // update with cart items from DB   
         
         // ক্যালকুলেশন
-        $subtotal = $cartItems->sum(function ($item) {
-            return $item->quantity * $item->product->price;
-        });
+        $subtotal = 0;
+        foreach ($cartItems as $item) {
+            $product = Product::find($item['product_id']); // Assuming CartItem has a product relationship
+            $quantity = $item['quantity']; // Assuming CartItem has a product relationship
+            $subtotal += $quantity * $product->price;
+
+            $orderItems[] = [
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'price' => $product->price,
+                'quantity' => $quantity,
+                'total' => $quantity * $product->price
+            ];
+        }
         
         $shippingCost = 100;
         $discount = 0;
@@ -61,38 +69,20 @@ class PaymentController extends Controller
         ]);
         
         // অর্ডার আইটেম সেভ
-        foreach ($cartItems as $item) {
+        foreach ($orderItems as $item) {
             OrderItem::create([
                 'order_id' => $order->id,
-                'product_id' => $item->product_id,
-                'product_name' => $item->product->name,
-                'price' => $item->product->price,
-                'quantity' => $item->quantity,
-                'total' => $item->quantity * $item->product->price
+                'product_id' => $item['product_id'],
+                'product_name' => $item['product_name'],
+                'price' => $item['price'],
+                'quantity' => $item['quantity'],
+                'total' => $item['total']
             ]);
         }
-        
-        // SSLCommerz পেমেন্ট ইনির্শিয়েট
-        $paymentResponse = Sslcommerz::setOrder($total, $order->order_number, 'Order #' . $order->order_number)
-            ->setCustomer($request->customer_name, $request->customer_email, $request->customer_phone)
-            ->setShippingInfo($cartItems->count(), $request->shipping_address)
-            ->makePayment();
-        
-        if ($paymentResponse->success()) {
-            return response()->json([
-                'message' => 'Payment initiated',
-                'order' => $order,
-                'payment_url' => $paymentResponse->gatewayPageURL()
-            ]);
-        }
-        
-        // পেমেন্ট ফেইল করলে অর্ডার ডিলিট
-        $order->delete();
         
         return response()->json([
-            'message' => 'Payment initiation failed',
-            'error' => $paymentResponse->failedReason()
-        ], 400);
+            'message' => 'Order successful.'
+        ]);
     }
     
     // পেমেন্ট সাকসেস কলব্যাক
